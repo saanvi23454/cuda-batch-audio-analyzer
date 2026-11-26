@@ -1,0 +1,7 @@
+bin/
+build/
+*.o
+data/input/*.wav
+data/input/labels.csv
+host_test_tmp.wav
+__pycache__/
