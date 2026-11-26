@@ -249,7 +249,7 @@ void GpuAnalyzer::Impl::Enqueue(Lane* lane, int index, const Signal& signal,
   NPP_CHECK(nppsConvert_16s32f_Ctx(lane->samples, lane->signal, n,
                                    lane->npp));
   NPP_CHECK(nppsMean_32f_Ctx(lane->signal, n, lane->stats + kStatMean,
-                             NPP_ALG_HINT_NONE, lane->scratch, lane->npp));
+                             lane->scratch, lane->npp));
   NPP_CHECK(nppsMinMax_32f_Ctx(lane->signal, n, lane->stats + kStatMin,
                                lane->stats + kStatMax, lane->scratch,
                                lane->npp));
