@@ -164,13 +164,34 @@ Exit code: `0` when every GPU result matches the CPU reference, `2` when any sig
 * **Onset detection needed an adaptive threshold.** My first version marked a frame as an onset when its flux was above 15 % of the signal's maximum. Against the labels it got only 52 of 97 melodies right, almost always by finding too many onsets. Spectral flux sums positive changes over all 513 bins, so even quiet background noise adds a steady amount of flux between notes. Subtracting a moving median (±0.2 s) before thresholding removed that baseline and fixed every case. Without ground-truth labels I would never have noticed, since the GPU and CPU agreed perfectly on the wrong answer.
 * **One cuFFT plan for every signal length.** A batched plan has a fixed batch size, and the signals have different lengths. Rather than one plan per length, each lane has a single plan for 64 frames and calls it once per 64-frame chunk. The framing kernel zero-fills the padding frames.
 * **No host round trips inside the pipeline.** The NPP reductions (mean, min/max, max, arg-max) write their results to device memory, and the next kernel reads them from there. The host never copies a scalar back in the middle of a signal, so a whole signal is one uninterrupted sequence of work on its stream.
-* **NPP's integer types differ between CUDA versions.** The signal functions take `int` lengths in CUDA 11 and `size_t` in newer releases, and `MaxIndx`'s index type changes too. `gpu_analyzer.cu` works out these types from the function signatures with small templates, so the same source builds against either version.
+* **NPP's signatures are not the same in every CUDA version.** The integer types of lengths, buffer sizes and `MaxIndx` indices are not fixed across releases. `gpu_analyzer.cu` works them out from the function signatures with small templates instead of hard-coding `int`. My first build in the lab still failed on one call: I had passed an algorithm-hint argument to `nppsMean_32f_Ctx`, which NPP 11.3 does not take. The lesson is to check every library signature against the headers of the version you actually run on.
+* **A header name can clash with the system.** I first named a header `src/features.h`. With `-Isrc` on the command line, glibc's own `#include <features.h>` picked up my file instead, and the standard library failed to compile with confusing errors. It built fine on Windows, which has no such system header. It is now `feature_utils.h`.
 * **Pinned memory and a warm-up.** Asynchronous copies only overlap with kernels when the host buffer is pinned. A one-signal warm-up run happens before timing, so lazy module loading and PTX JIT are not counted in the batch time. They are reported separately as setup time.
 * **Style.** The code follows the Google C++ Style Guide (`.clang-format` is `BasedOnStyle: Google`, 80 columns, `CamelCase` functions, `snake_case_` members, `kConstants`, no exceptions).
 
 ## Results
 
-See `results/run_log.txt` and the figures in `results/figures/` after running `./run.sh` on a GPU.
+This run was in the Coursera GPU lab on an **NVIDIA L4** (compute capability 8.9, 58 SMs), with CUDA runtime 11.3, driver 12.6 and NPP 11.3.3. The full log is in [`results/run_log.txt`](results/run_log.txt).
+
+| Metric | Value |
+|---|---|
+| Signals | 400 WAV files, 21.00 M samples, 1312.8 s (≈ 22 min) of audio |
+| GPU batch wall time (incl. all host↔device copies) | **22.95 ms** → 915 M samples/s, ≈ 57 000× real time |
+| CPU reference (single thread) | 3090 ms → 6.8 M samples/s |
+| Speed-up (CPU / GPU batch) | **134.6×** |
+| GPU vs CPU verification | **400/400 PASS** |
+| Dominant frequency vs truth (tones, harmonic notes, chords) | **250/250** within half a bin |
+| Onset count vs truth (melodies) | **97/97** exact |
+| Per-signal GPU latency | 0.04–0.11 ms (grows with signal length) |
+| One-time setup (CUDA context, buffers, cuFFT plans) | 1569 ms |
+
+What the numbers show:
+* **The whole dataset takes less time than one CPU signal.** The full 22 minutes of audio is analyzed in 23 ms. The single-threaded CPU code needs about 3 s for the same work, mostly in the FFTs: about 82 000 frames of 1024 points each.
+* **Setup costs far more than the work itself.** Creating the CUDA context, allocating all buffers and planning cuFFT took about 70× longer than processing the whole batch. A service would pay this once and reuse it, which is why it is timed separately and the warm-up is excluded.
+* **The labels matter more than the speed-up.** The GPU matching the CPU only shows that the two implementations agree. The 250/250 and 97/97 against the true answers show that the analysis itself is right.
+* **Onsets on unlabelled signals behave as expected.** Steady tones and harmonic notes give 0–1 onsets. Noise files give several, because random noise has many small energy bursts. That is acceptable for an onset detector, but it is why only melodies are scored.
+
+The stream-scaling results (1, 2, 4 and 8 streams) are in `results/stream_scaling_log.txt` and `results/figures/stream_scaling.png`.
 
 ## Attribution
 

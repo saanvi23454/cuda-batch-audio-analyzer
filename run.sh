@@ -40,6 +40,7 @@ status=${PIPESTATUS[0]}
 set -e
 
 echo "== 5. Stream scaling (GPU only) =="
+mkdir -p "$RESULTS/scaling"
 : > "$RESULTS/stream_scaling_log.txt"
 for s in 1 2 4 8; do
   ./bin/audio_analyzer --input_dir="$INPUT" \
