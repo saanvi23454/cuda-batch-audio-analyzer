@@ -21,7 +21,7 @@ NVCCFLAGS ?= -std=c++14 -O3 -arch=$(ARCH) -Xcompiler -Wall,-Wextra
 INCLUDES := -Isrc
 LDLIBS := -lcufft -lnppc -lnpps
 
-HOST_LIB_SRC := src/cli_options.cc src/cpu_reference.cc src/features.cc \
+HOST_LIB_SRC := src/cli_options.cc src/cpu_reference.cc src/feature_utils.cc \
                 src/file_util.cc src/labels.cc src/wav_io.cc
 CUDA_SRC := src/gpu_analyzer.cu src/kernels.cu
 

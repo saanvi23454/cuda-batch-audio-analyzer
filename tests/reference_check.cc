@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "cpu_reference.h"
-#include "features.h"
+#include "feature_utils.h"
 #include "file_util.h"
 #include "labels.h"
 #include "wav_io.h"

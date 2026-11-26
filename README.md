@@ -66,7 +66,7 @@ Every file also gets random noise, gain and a DC offset, so the normalization st
 │   ├── gpu_analyzer.{h,cu}  lanes (streams), NPP calls, cuFFT plans, async copies
 │   ├── kernels.{h,cu}       custom CUDA kernels and their launchers
 │   ├── cpu_reference.{h,cc} single-threaded version of the full pipeline (radix-2 FFT)
-│   ├── features.{h,cc}      onset picking, dominant-frequency refinement, GPU-vs-CPU comparison
+│   ├── feature_utils.{h,cc} onset picking, dominant-frequency refinement, GPU-vs-CPU comparison
 │   ├── wav_io.{h,cc}        16-bit PCM WAV reader/writer (no external libraries)
 │   ├── labels.{h,cc}        ground-truth CSV reader
 │   ├── file_util.{h,cc}     directory listing, mkdir -p, PGM writer

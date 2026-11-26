@@ -2,8 +2,8 @@
 // GPU (or the CPU reference) into per-signal results, plus the GPU-vs-CPU
 // comparison.
 
-#ifndef SRC_FEATURES_H_
-#define SRC_FEATURES_H_
+#ifndef SRC_FEATURE_UTILS_H_
+#define SRC_FEATURE_UTILS_H_
 
 #include <vector>
 
@@ -41,4 +41,4 @@ Comparison CompareAnalyses(const SignalAnalysis& gpu,
 
 }  // namespace audio
 
-#endif  // SRC_FEATURES_H_
+#endif  // SRC_FEATURE_UTILS_H_

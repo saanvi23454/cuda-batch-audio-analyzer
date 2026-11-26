@@ -12,7 +12,7 @@
 
 #include "cli_options.h"
 #include "cpu_reference.h"
-#include "features.h"
+#include "feature_utils.h"
 #include "file_util.h"
 #include "gpu_analyzer.h"
 #include "labels.h"
